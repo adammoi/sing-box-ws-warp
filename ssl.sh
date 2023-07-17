@@ -62,7 +62,6 @@ ssl_cert_issue_standalone() {
         mkdir $certPath
     fi
     #dapatkan domainnya di sini, dan kami harus memverifikasinya
-    local domain=""
     read -p "Masukkan nama domain : " domain
     "Nama domain yang  dimasukkan adalah : ${domain}, verifikasi validitas nama domain sedang berlangsung..."
     #di sini kita perlu mengecek apakah sudah ada sertifikat
@@ -76,7 +75,7 @@ ssl_cert_issue_standalone() {
         "Verifikasi legalitas nama domain berhasil..."
     fi
     #dapatkan port yang dibutuhkan di sini
-    local WebPort=80
+    WebPort=80
     read -p "Silakan masukkan port yang ingin digunakan, jika menekan Enter, port default 80 akan digunakan : " WebPort
     if [[ ${WebPort} -gt 65535 || ${WebPort} -lt 1 ]]; then
         "Port ${WebPort} yang Anda pilih adalah nilai yang tidak valid, dan port default 80 akan digunakan untuk aplikasi"
@@ -145,7 +144,7 @@ ssl_cert_issue_by_cloudflare() {
         read -p "Input your domain here : " CF_Domain
         "Nama domain disetel ke : ${CF_Domain}, verifikasi validitas nama domain sedang berlangsung..."
         #di sini kita perlu mengecek apakah sudah ada sertifikat
-        local currentCert=$(~/.acme.sh/acme.sh --list | grep ${CF_Domain} | wc -l)
+        currentCert=$(~/.acme.sh/acme.sh --list | grep ${CF_Domain} | wc -l)
         if [ ${currentCert} -ne 0 ]; then
             local certInfo=$(~/.acme.sh/acme.sh --list)
             LOGE "Sertifikat telah diinstal dan pembaruan otomatis telah diaktifkan, informasi spesifiknya adalah sebagai berikut : "
