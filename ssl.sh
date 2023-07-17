@@ -1,4 +1,3 @@
-local method=""
 echo -E ""
 echo "******Petunjuk******"
 echo "Skrip ini menyediakan dua cara untuk mengimplementasikan penerbitan sertifikat, dan jalur penginstalan sertifikat adalah /root/cert"
