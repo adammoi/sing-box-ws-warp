@@ -106,7 +106,7 @@ def renew_data():
     # Run shell commands to generate UUID, reality keypair, and short ID
     uuid = subprocess.run(["/root/sing-box", "generate","uuid"], text=True, capture_output=True).stdout.strip()
     with open("/root/tele_bot/sb-data.json", "w") as f:
-        dic = {"uuid": uuid}
+        dic = {"password": uuid}
         json.dump(dic, f)
 
     # Stopping sing-box before editing config, not doing it for first config setup though!
@@ -119,7 +119,7 @@ def renew_data():
     json_data = open_config_json()
 
     # Modify the values in the JSON data
-    json_data["inbounds"][0]["users"][0]["uuid"] = uuid
+    json_data["inbounds"][0]["users"][0]["password"] = uuid
 
     # Save the modified JSON data to config
     save_to_file(json_data)
@@ -156,8 +156,8 @@ def open_config_json():
       "domain_strategy": "ipv4_only",
       "users": [
         {
-          "uuid": $uuid,
-          "alterid": 0
+          "name" : adam
+          "password": $uuid
         }
       ],
       "tls": {
@@ -168,8 +168,8 @@ def open_config_json():
         ],
         "min_version": "1.2",
         "max_version": "1.3",
-        "certificate_path": "/etc/certs/cert.pem",
-        "key_path": "/etc/certs/key.pem"
+        "certificate_path": "/root/cert/"$server_name".cer",
+        "key_path": "/root/cert/"$server_name".key"
       },
       "transport": {
         "type": "ws",
@@ -235,7 +235,7 @@ def generate_trojan_config_string():
     json_data = open_config_json()
 
     # Extract the necessary data from the JSON data
-    uuid = json_data["inbounds"][0]["users"][0]["uuid"]
+    uuid = json_data["inbounds"][0]["users"][0]["password"]
     listen_port = json_data["inbounds"][0]["listen_port"]
     server_name = json_data["inbounds"][0]["tls"]["server_name"]
     # Generate the trojan proxy configuration string
