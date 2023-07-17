@@ -5,9 +5,9 @@ echo "Script installer Sing-Box WebSocket + WARP"
 apt update && apt upgrade -y
 
 wget -O nginx "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/nginx.sh" 
-chown +x nginx
+chmod +x nginx
 wget -O ssl "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/ssl.sh"
-chown +x ssl
+chmod +x ssl
 wget -O first.py "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/tele_bot/first.py"
 python3 first.py
 
@@ -112,7 +112,7 @@ mv "/root/${package_name}/sing-box" /root/
 rm -r "/root/${package_name}.tar.gz" "/root/${package_name}"
 
 # Set the permissions
-chown root:root /root/sing-box
+chmod root:root /root/sing-box
 chmod +x /root/sing-box
 
 
