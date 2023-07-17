@@ -121,8 +121,6 @@ chmod +x /root/sing-box
 # Generate necessary values
 uuid=$(/root/sing-box generate uuid)
 
-name=adam
-
 # Ask for server name (sni)
 read -p "Enter server name/SNI (default: sb.adam-sija.my.id): " server_name
 server_name=${server_name:-sb.adam-sija.my.id}
@@ -147,7 +145,7 @@ jq -n --arg server_name "$server_name"  --arg name "$name" --arg uuid "$uuid" '{
       "domain_strategy": "ipv4_only",
       "users": [
         {
-          "name": $name,
+          "name": adam,
           "password": $uuid
         }
       ],
@@ -212,7 +210,7 @@ if /root/sing-box check -c /root/config.json; then
 
 # Generate the link
 
-    server_link="trojan://$uuid@$server_ip:443/?sni=$server_name&type=ws&host=$server_name&path=%2Ftrojan"
+    server_link="trojan://$uuid@$server_ip:443/?sni=$server_name&type=ws&host=$server_name&path=%2Ftrojan#adam"
 
     # Print the server details
     echo
