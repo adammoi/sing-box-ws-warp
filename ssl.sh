@@ -1,26 +1,3 @@
-echo -E ""
-echo "******Petunjuk******"
-echo "Skrip ini menyediakan dua cara untuk mengimplementasikan penerbitan sertifikat, dan jalur penginstalan sertifikat adalah /root/cert"
-echo "Metode 1: acme standalone mode, port harus tetap terbuka"
-echo "Metode 2: mode API DNS acme, perlu menyediakan Cloudflare Global API Key"
-echo "Jika nama domain adalah nama domain gratis, disarankan untuk menggunakan metode 1 untuk mendaftar"
-echo "Jika nama domain bukan nama domain gratis dan Cloudflare digunakan untuk penyelesaian, gunakan metode 2 untuk menerapkan"
-    read -p "Silahkan pilih metode yang ingin digunakan, masukkan angka 1 atau 2 dan tekan Enter": method
-    echo "Metode yang Anda gunakan adalah : ${method}"
-
-    case "${method}" in
-    "1")
-        ssl_cert_issue_standalone
-        ;;
-    "2")
-        ssl_cert_issue_by_cloudflare
-        ;;
-    *)
-        echo "Input tidak valid, harap periksa input Anda, skrip berakhir"
-        exit 1
-        ;;
-esac
-
 install_acme() {
     cd ~
     "Mulai instal skrip acme..."
@@ -199,3 +176,27 @@ ssl_cert_issue_by_cloudflare() {
         show_menu
     fi
 }
+
+
+echo -E ""
+echo "******Petunjuk******"
+echo "Skrip ini menyediakan dua cara untuk mengimplementasikan penerbitan sertifikat, dan jalur penginstalan sertifikat adalah /root/cert"
+echo "Metode 1: acme standalone mode, port harus tetap terbuka"
+echo "Metode 2: mode API DNS acme, perlu menyediakan Cloudflare Global API Key"
+echo "Jika nama domain adalah nama domain gratis, disarankan untuk menggunakan metode 1 untuk mendaftar"
+echo "Jika nama domain bukan nama domain gratis dan Cloudflare digunakan untuk penyelesaian, gunakan metode 2 untuk menerapkan"
+    read -p "Silahkan pilih metode yang ingin digunakan, masukkan angka 1 atau 2 dan tekan Enter": method
+    echo "Metode yang Anda gunakan adalah : ${method}"
+
+    case "${method}" in
+    "1")
+        ssl_cert_issue_standalone
+        ;;
+    "2")
+        ssl_cert_issue_by_cloudflare
+        ;;
+    *)
+        echo "Input tidak valid, harap periksa input Anda, skrip berakhir"
+        exit 1
+        ;;
+esac
