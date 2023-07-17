@@ -42,9 +42,9 @@ ssl_cert_issue_standalone() {
     read -p "Masukkan nama domain : " domain
     "Nama domain yang  dimasukkan adalah : ${domain}, verifikasi validitas nama domain sedang berlangsung..."
     #di sini kita perlu mengecek apakah sudah ada sertifikat
-    local currentCert=$(~/.acme.sh/acme.sh --list | grep ${domain} | wc -l)
+    currentCert=$(~/.acme.sh/acme.sh --list | grep ${domain} | wc -l)
     if [ ${currentCert} -ne 0 ]; then
-        local certInfo=$(~/.acme.sh/acme.sh --list)
+        certInfo=$(~/.acme.sh/acme.sh --list)
         "Verifikasi validitas nama domain gagal. Lingkungan saat ini sudah memiliki sertifikat nama domain yang sesuai. Aplikasi berulang tidak diizinkan. Detail sertifikat saat ini : "
         "$certInfo"
         exit 1
