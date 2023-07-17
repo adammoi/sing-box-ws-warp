@@ -121,6 +121,8 @@ chmod +x /root/sing-box
 # Generate necessary values
 uuid=$(/root/sing-box generate uuid)
 
+name=adam
+
 # Ask for server name (sni)
 read -p "Enter server name/SNI (default: sb.adam-sija.my.id): " server_name
 server_name=${server_name:-sb.adam-sija.my.id}
@@ -129,7 +131,7 @@ server_name=${server_name:-sb.adam-sija.my.id}
 server_ip=$(curl -s https://api.ipify.org)
 
 # Create config.json using jq
-jq -n --arg server_name "$server_name" --arg uuid "$uuid" '{
+jq -n --arg server_name "$server_name"  --arg name "$name" --arg uuid "$uuid" '{
   "log": {
     "level": "info",
     "timestamp": true
@@ -145,8 +147,8 @@ jq -n --arg server_name "$server_name" --arg uuid "$uuid" '{
       "domain_strategy": "ipv4_only",
       "users": [
         {
-          "uuid": $uuid,
-          "alterid": 0
+          "name": $name,
+          "password": $uuid
         }
       ],
       "tls": {
@@ -214,10 +216,10 @@ if /root/sing-box check -c /root/config.json; then
 
     # Print the server details
     echo
-    echo "Server IP: $server_ip"
-    echo "Listen Port: 443"
-    echo "Server Name: $server_name"
-    echo "UUID: $uuid"
+    echo "Server IP : $server_ip"
+    echo "Listen Port : 443"
+    echo "Server Name : $server_name"
+    echo "Password : $uuid"
     echo ""
     echo ""
     echo "Here is the link for NekoBox and v2rayNG :"
