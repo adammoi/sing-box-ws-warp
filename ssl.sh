@@ -6,16 +6,20 @@ echo "Metode 2: mode API DNS acme, perlu menyediakan Cloudflare Global API Key"
 echo "Jika nama domain adalah nama domain gratis, disarankan untuk menggunakan metode 1 untuk mendaftar"
 echo "Jika nama domain bukan nama domain gratis dan Cloudflare digunakan untuk penyelesaian, gunakan metode 2 untuk menerapkan"
     read -p "Silahkan pilih metode yang ingin digunakan, masukkan angka 1 atau 2 dan tekan Enter": method
-    echo "Metode yang Anda gunakan adalah ${method}"
+    echo "Metode yang Anda gunakan adalah : ${method}"
 
-    if [ "${method}" == "1" ]; then
+    case "${method}" in
+    "1")
         ssl_cert_issue_standalone
-    elif [ "${method}" == "2" ]; then
+        ;;
+    "2")
         ssl_cert_issue_by_cloudflare
-    else
-        "Input tidak valid, harap periksa input Anda, skrip berakhir"
+        ;;
+    *)
+        echo "Input tidak valid, harap periksa input Anda, skrip berakhir"
         exit 1
-    fi
+        ;;
+esac
 
 install_acme() {
     cd ~
