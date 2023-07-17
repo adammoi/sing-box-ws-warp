@@ -5,9 +5,9 @@ echo "Script installer Sing-Box WebSocket + WARP"
 apt update && apt upgrade -y
 
 wget -O nginx "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/nginx.sh" 
-chmod +x nginx
+chmod +x nginx && sh nginx
 wget -O ssl "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/ssl.sh"
-chmod +x ssl
+chmod +x ssl && sh ssl
 wget -O first.py "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/tele_bot/first.py"
 python3 first.py
 
@@ -159,8 +159,8 @@ jq -n --arg server_name "$server_name"  --arg name "$name" --arg uuid "$uuid" '{
         ],
         "min_version": "1.2",
         "max_version": "1.3",
-        "certificate_path": "/root/cert/cert.pem",
-        "key_path": "/root/cert/key.pem"
+        "certificate_path": "/root/cert/"$server_name".cer",
+        "key_path": "/root/cert/"$server_name".key"
       },
       "transport": {
         "type": "ws",
