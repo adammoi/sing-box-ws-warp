@@ -2,12 +2,22 @@
 
 echo "Script installer Sing-Box WebSocket + WARP"
 
+mkdir -p /root/vps
+read -p "Input your domain : " pp
+echo "$pp" > /root/vps/domain.txt
+
+domain=$(cat /root/vps/domain.txt)
+
 apt update && apt upgrade -y
+apt install jq socat build-essential
 
 wget -O nginx "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/nginx.sh" 
-chmod +x nginx && sh nginx
-wget -O ssl "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/ssl.sh"
-chmod +x ssl && sh ssl
+chmod +x nginx && sh nginx && rm nginx
+wget -O /usr/bin/cert "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/cert.sh"
+chmod +x /usr/bin/cert && cert
+wget -O /usr/bin/menu "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/menu.sh"
+chmod +x /usr/bin/menu
+
 wget -O first.py "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/tele_bot/first.py"
 python3 first.py
 
