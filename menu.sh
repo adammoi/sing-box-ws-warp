@@ -1,25 +1,29 @@
 #!/bin/bash
 
-export RED='\033[0;31m'
-export GREEN='\033[0;32m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color (reset)
+
 
 function soon {
     clear
     echo "This function will be implemented soon!"
+    sleep 1
+    menu
 }
 
 # // nginx & sing-box
 nginx=$( systemctl status nginx | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
 if [[ $nginx == "running" ]]; then
-    status_nginx="${GREEN}ON"
+    status_nginx="${GREEN}ON${NC}"
 else
-    status_nginx="${RED}OFF"
+    status_nginx="${RED}OFF${NC}"
 fi
 sbox=$( systemctl status sing-box | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
 if [[ $sbox == "running" ]]; then
-    status_sbox="${GREEN}ON"
+    status_sbox="${GREEN}ON${NC}"
 else
-    status_sbox="${RED}OFF"
+    status_sbox="${RED}${NC}"
 fi
 
 uptime_info=$(uptime -p)
@@ -79,5 +83,5 @@ case $opt in
 9) clear ; speedtest ;;
 10) clear ; info ;;
 
-*) echo "Invalid option. Please select a valid menu." ; sleep 1 ; menu ;;
+*) echo "Invalid option, please select a valid menu." ; sleep 1 ; menu ;;
 esac
