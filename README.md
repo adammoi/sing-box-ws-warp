@@ -1,4 +1,5 @@
 # sing-box-ws-warp
+
 Script installer sing-box websocket + warp (soon)
 
 ```bash

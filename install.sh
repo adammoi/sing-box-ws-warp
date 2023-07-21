@@ -2,34 +2,29 @@
 
 echo "Script installer Sing-Box WebSocket + WARP"
 
+mkdir -p /root/vps
+mkdir -p /root/sbx
+mkdir -p /root/akun
+read -p "Input your domain : " pp
+echo "$pp" > /root/vps/domain.txt
+
+
 apt update && apt upgrade -y
+apt install jq socat build-essential
 
 wget -O nginx "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/nginx.sh" 
-chmod +x nginx && sh nginx
-wget -O ssl "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/ssl.sh"
-chmod +x ssl && sh ssl
+chmod +x nginx && sh nginx && rm nginx
+wget -O /usr/bin/cert "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/cert.sh"
+chmod +x /usr/bin/cert && cert
+wget -O /usr/bin/menu "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/menu.sh"
+chmod +x /usr/bin/menu
+
 wget -O first.py "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/tele_bot/first.py"
 python3 first.py
 
-# Check if jq is installed, and install it if not
-if ! command -v jq &> /dev/null; then
-    echo "jq is not installed. Installing..."
-    if [ -n "$(command -v apt)" ]; then
-        apt update
-        apt install -y jq
-    elif [ -n "$(command -v yum)" ]; then
-        yum install -y epel-release
-        yum install -y jq
-    elif [ -n "$(command -v dnf)" ]; then
-        dnf install -y jq
-    else
-        echo "Cannot install jq. Please install jq manually and rerun the script."
-        exit 1
-    fi
-fi
 
 # Check if config.json, sing-box, and sing-box.service already exist
-if [ -f "/root/config.json" ] && [ -f "/root/sing-box" ] && [ -f "/etc/systemd/system/sing-box.service" ]; then
+if [ -f "/root/sbx/config.json" ] && [ -f "/root/sbx/sing-box" ] && [ -f "/etc/systemd/system/sing-box.service" ]; then
 
     echo "config files already exist."
     echo ""
@@ -47,8 +42,8 @@ if [ -f "/root/config.json" ] && [ -f "/root/sing-box" ] && [ -f "/etc/systemd/s
             systemctl stop sing-box
             systemctl disable sing-box
             rm /etc/systemd/system/sing-box.service
-            rm /root/config.json
-            rm /root/sing-box
+            rm /root/sbx/config.json
+            rm /root/sbx/sing-box
 
             # Proceed with installation
             ;;
@@ -57,16 +52,15 @@ if [ -f "/root/config.json" ] && [ -f "/root/sing-box" ] && [ -f "/etc/systemd/s
             # Stop and disable sing-box service
             systemctl stop sing-box
             systemctl disable sing-box
-
             # Remove files
             rm /etc/systemd/system/sing-box.service
-            rm /root/config.json
-            rm /root/sing-box
-	    echo "DONE!"
+            rm /root/sbx/config.json
+            rm /root/sbx/sing-box
+            echo "DONE! Good Bye!"
+            sleep 2
             exit 0
             ;;
-        *)
-            echo "Invalid choice. Exiting."
+        *) echo "Invalid choice. Exiting."
             exit 1
             ;;
     esac
@@ -106,63 +100,123 @@ curl -sLo "/root/${package_name}.tar.gz" "$url"
 
 # Extract the package and move the binary to /root
 tar -xzf "/root/${package_name}.tar.gz" -C /root
-mv "/root/${package_name}/sing-box" /root/
+mv "/root/${package_name}/sing-box" /root/sbx/
 
 # Cleanup the package
 rm -r "/root/${package_name}.tar.gz" "/root/${package_name}"
 
 # Set the permissions
-chmod root:root /root/sing-box
-chmod +x /root/sing-box
-
-
-# Generate key pair
+chmod root:root /root/sbx/sing-box
+chmod +x /root/sbx/sing-box
 
 # Generate necessary values
-uuid=$(/root/sing-box generate uuid)
-
-# Ask for server name (sni)
-read -p "Enter server name/SNI (default: sb.adam-sija.my.id): " server_name
-server_name=${server_name:-sb.adam-sija.my.id}
-
+domain=$(cat /root/vps/domain.txt)
+uuid=$(/root/sbx/sing-box generate uuid)
 # Retrieve the server IP address
 server_ip=$(curl -s https://api.ipify.org)
 
 # Create config.json using jq
-jq -n --arg server_name "$server_name"  --arg name "$name" --arg uuid "$uuid" '{
+jq -n --arg domain "$domain" --arg uuid "$uuid" '{
   "log": {
     "level": "info",
+    "output": "/root/sbx/sb.log",
     "timestamp": true
   },
   "inbounds": [
     {
-      "type": "trojan",
-      "tag": "trojan-in",
+      "type": "vmess",
+      "tag": "vmess-in",
       "listen": "::",
-      "listen_port": 52001,
+      "listen_port": 5001,
       "sniff": true,
       "sniff_override_destination": true,
       "domain_strategy": "ipv4_only",
       "users": [
         {
-          "name": adam,
-          "password": $uuid
+          "name": "adam",
+          "uuid": "$uuid",
+          "alterId": 0
         }
       ],
       "tls": {
         "enabled": true,
-        "server_name": $server_name,
+        "server_name": "$domain",
         "alpn": [
           "http/1.1"
         ],
         "min_version": "1.2",
         "max_version": "1.3",
-        "certificate_path": "/root/cert/"$server_name".cer",
-        "key_path": "/root/cert/"$server_name".key"
+        "certificate_path": "/root/cert/$domain/fullchain.pem",
+        "key_path": "/root/cert/$domain/privkey.pem"
       },
       "transport": {
         "type": "ws",
-        "path": "/trojan",
+        "path": "/vmws",
+        "max_early_data": 0,
+        "early_data_header_name": "Sec-WebSocket-Protocol"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "vless-in",
+      "listen": "::",
+      "listen_port": 5002,
+      "sniff": true,
+      "sniff_override_destination": true,
+      "domain_strategy": "ipv4_only",
+      "users": [
+        {
+          "name": "adam",
+          "uuid": "$uuid",
+          "flow": ""
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "server_name": "$domain",
+        "alpn": [
+          "http/1.1"
+        ],
+        "min_version": "1.2",
+        "max_version": "1.3",
+        "certificate_path": "/root/cert/$domain/fullchain.pem",
+        "key_path": "/root/cert/$domain/privkey.pem"
+      },
+      "transport": {
+        "type": "ws",
+        "path": "/vlws",
+        "max_early_data": 0,
+        "early_data_header_name": "Sec-WebSocket-Protocol"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "trojan-in",
+      "listen": "::",
+      "listen_port": 5003,
+      "sniff": true,
+      "sniff_override_destination": true,
+      "domain_strategy": "ipv4_only",
+      "users": [
+        {
+          "name": "adam",
+          "password": "$uuid"
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "server_name": "$domain",
+        "alpn": [
+          "http/1.1"
+        ],
+        "min_version": "1.2",
+        "max_version": "1.3",
+        "certificate_path": "/root/cert/$domain/fullchain.pem",
+        "key_path": "/root/cert/$domain/privkey.pem"
+      },
+      "transport": {
+        "type": "ws",
+        "path": "/trws",
         "max_early_data": 0,
         "early_data_header_name": "Sec-WebSocket-Protocol"
       }
@@ -178,7 +232,7 @@ jq -n --arg server_name "$server_name"  --arg name "$name" --arg uuid "$uuid" '{
       "tag": "block"
     }
   ]
-}' > /root/config.json
+}' > /root/sbx/config.json
 
 # Create sing-box.service
 cat > /etc/systemd/system/sing-box.service <<EOF
@@ -190,7 +244,7 @@ User=root
 WorkingDirectory=/root
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
-ExecStart=/root/sing-box run -c /root/config.json
+ExecStart=/root/sbx/sing-box run -c /root/sbx/config.json
 ExecReload=/bin/kill -HUP \$MAINPID
 Restart=on-failure
 RestartSec=10
@@ -201,7 +255,7 @@ WantedBy=multi-user.target
 EOF
 
 # Check configuration and start the service
-if /root/sing-box check -c /root/config.json; then
+if /root/sbx/sing-box check -c /root/sbx/config.json; then
     echo "Configuration checked successfully. Starting sing-box service..."
     systemctl daemon-reload
     systemctl enable sing-box
@@ -210,23 +264,28 @@ if /root/sing-box check -c /root/config.json; then
 
 # Generate the link
 
-    server_link="trojan://$uuid@$server_ip:443/?sni=$server_name&type=ws&host=$server_name&path=%2Ftrojan#adam"
+    link_vless="vless://$uuid@ISI_BUG:443/?type=ws&encryption=none&host=$domain&path=%2Fvlws&security=tls&sni=$domain&allowInsecure=1&fp=chrome#adam"
+    link_trojan="trojan://$uuid@ISI_BUG:443/?type=ws&host=$domain&path=%2Ftrws&security=tls&sni=$domain&allowInsecure=1#adam"
 
     # Print the server details
     echo
-    echo "Server IP : $server_ip"
-    echo "Listen Port : 443"
-    echo "Server Name : $server_name"
-    echo "Password : $uuid"
+    echo "Server IP       : $server_ip"
+    echo "Listen Port     : 443"
+    echo "Server Name     : $domain"
+    echo "Path Vless WS   : /vlws"
+    echo "Path Trojan WS  : /trws"
     echo ""
+    echo "Here is the link for NekoBox or v2rayNG : "
     echo ""
-    echo "Here is the link for NekoBox and v2rayNG :"
+    echo "Vless : $link_vless"
     echo ""
-    echo "$server_link"
+    echo "Trojan : $link_trojan"
 
-    touch /root/akun.txt
-    echo $server_link > /root/akun.txt
+    touch /root/akun/vless.txt
+    touch /root/akun/trojan.txt
+    echo $link_vless > /root/akun/vless.txt
+    echo $link_trojan > /root/akun/trojan.txt
 
 else
-    echo "Error in configuration. Aborting."
+    echo "Error in configuration. Aborting..."
 fi
