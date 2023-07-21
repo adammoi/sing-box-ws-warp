@@ -36,12 +36,12 @@ server {
     listen [::]:443 ssl http2 reuseport;
     listen 80 reuseport;
     listen [::]:80 reuseport
-    server_name  $domain;
+    server_name $domain;
     index index.html;
     root /var/www/html;
 
-    ssl_certificate /root/cert/fullchain.pem;
-    ssl_certificate_key /root/cert/privkey.pem;
+    ssl_certificate /root/cert/$domain/fullchain.pem;
+    ssl_certificate_key /root/cert/$domain/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
 
