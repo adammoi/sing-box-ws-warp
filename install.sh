@@ -9,8 +9,15 @@ read -p "Input your domain : " pp
 echo "$pp" > /root/vps/domain.txt
 
 
+#change repo list
+sed -i 's/http:\/\/.*\/ubuntu\//http:\/\/archive.ubuntu.com\/ubuntu\//g' /etc/apt/sources.list
+
 apt update && apt upgrade -y
-apt install jq socat build-essential
+apt install curl wget jq socat build-essential qrencode -y
+
+#speedtest
+curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
+apt-get install speedtest
 
 wget -O nginx "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/nginx.sh" 
 chmod +x nginx && sh nginx && rm nginx
@@ -18,10 +25,9 @@ wget -O /usr/bin/cert "https://raw.githubusercontent.com/adammoi/sing-box-ws-war
 chmod +x /usr/bin/cert && cert
 wget -O /usr/bin/menu "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/menu.sh"
 chmod +x /usr/bin/menu
-
-wget -O first.py "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/tele_bot/first.py"
-python3 first.py
-
+wget -O /usr/bin/info "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/info.sh"
+chmod +x /usr/bin/info
+wget -O /var/www/html/index.html "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/index.html"
 
 # Check if config.json, sing-box, and sing-box.service already exist
 if [ -f "/root/sbx/config.json" ] && [ -f "/root/sbx/sing-box" ] && [ -f "/etc/systemd/system/sing-box.service" ]; then
@@ -67,7 +73,8 @@ if [ -f "/root/sbx/config.json" ] && [ -f "/root/sbx/sing-box" ] && [ -f "/etc/s
 fi
 
 # Fetch the latest (including pre-releases) release version number from GitHub API
-latest_version=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases" | grep -P -m1 -o "(v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}(-beta.[0-9]{1,})?)" | tr -d 'v')
+latest_version_tag=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases" | grep -Po '"tag_name": "\K.*?(?=")' | head -n 1)
+latest_version=${latest_version_tag#v} 
 echo "Latest version: $latest_version"
 
 # Detect server architecture
@@ -92,7 +99,7 @@ esac
 package_name="sing-box-${latest_version}-linux-${arch}"
 
 # Prepare download URL
-url="https://github.com/SagerNet/sing-box/releases/download/v${latest_version}/${package_name}.tar.gz"
+url="https://github.com/SagerNet/sing-box/releases/download/${latest_version_tag}/${package_name}.tar.gz"
 
 # Download the latest release package (.tar.gz) from GitHub
 curl -sLo "/root/${package_name}.tar.gz" "$url"
@@ -260,10 +267,25 @@ if /root/sbx/sing-box check -c /root/sbx/config.json; then
     systemctl daemon-reload
     systemctl enable sing-box
     systemctl start sing-box
-    systemctl restart sing-box
 
 # Generate the link
+vmlink=`cat << EOF
+{
+"v": "2",
+"ps": "adam",
+"add": "ISI_BUG",
+"port": "443",
+"id": "$uuid",
+"aid": "0",
+"net": "ws",
+"path": "/vmws",
+"type": "none",
+"host": "$domain",
+"tls": "tls"
+}
+EOF`
 
+    link_vmess="vmess://$(echo $vmlink | base64 -w 0)"
     link_vless="vless://$uuid@ISI_BUG:443/?type=ws&encryption=none&host=$domain&path=%2Fvlws&security=tls&sni=$domain&allowInsecure=1&fp=chrome#adam"
     link_trojan="trojan://$uuid@ISI_BUG:443/?type=ws&host=$domain&path=%2Ftrws&security=tls&sni=$domain&allowInsecure=1#adam"
 
@@ -272,6 +294,7 @@ if /root/sbx/sing-box check -c /root/sbx/config.json; then
     echo "Server IP       : $server_ip"
     echo "Listen Port     : 443"
     echo "Server Name     : $domain"
+    echo "Path Vmess WS   : /vmws"
     echo "Path Vless WS   : /vlws"
     echo "Path Trojan WS  : /trws"
     echo ""
@@ -281,8 +304,11 @@ if /root/sbx/sing-box check -c /root/sbx/config.json; then
     echo ""
     echo "Trojan : $link_trojan"
 
+
+    touch /root/akun/vmess.txt
     touch /root/akun/vless.txt
     touch /root/akun/trojan.txt
+    echo $link_vless > /root/akun/vmess.txt
     echo $link_vless > /root/akun/vless.txt
     echo $link_trojan > /root/akun/trojan.txt
 
