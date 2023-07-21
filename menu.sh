@@ -3,12 +3,21 @@
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color (reset)
+domain=$(cat /root/vps/domain.txt)
 
 
 function soon {
     clear
     echo "This function will be implemented soon!"
     sleep 1
+    menu
+}
+
+function qrcode {
+    clear
+    echo "Visit $domain:81 to convert your link to QR CODE"
+    echo "I know this is stupid things :D"
+    sleep 3
     menu
 }
 
@@ -60,7 +69,7 @@ echo "————————————————————————�
 echo "                     List Menu                     "
 echo "───────────────────────────────────────────────────"
 echo "  [01] • [Menu] VMESS      [07] • CHANGE DOMAIN"        
-echo "  [02] • [Menu] VLESS      [08] • CLEAR LOG"      
+echo "  [02] • [Menu] VLESS      [08] • QR CODE"      
 echo "  [03] • [Menu] TROJAN     [09] • SPEEDTEST"    
 echo "  [04] • [Menu] SING-BOX   [10] • ABOUT    "    
 echo "───────────────────────────────────────────────────"
@@ -79,7 +88,7 @@ case $opt in
 5) clear ; soon ;;
 6) clear ; soon ;;
 7) clear ; soon ;;
-8) clear ; soon ;;
+8) clear ; qrcode ;;
 9) clear ; speedtest ;;
 10) clear ; info ;;
 
