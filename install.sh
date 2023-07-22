@@ -13,7 +13,7 @@ echo "$pp" > /root/vps/domain.txt
 sed -i 's/http:\/\/.*\/ubuntu\//http:\/\/archive.ubuntu.com\/ubuntu\//g' /etc/apt/sources.list
 
 apt update && apt upgrade -y
-apt install curl wget jq socat build-essential qrencode -y
+apt install curl wget jq socat build-essential -y
 
 #speedtest
 curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
