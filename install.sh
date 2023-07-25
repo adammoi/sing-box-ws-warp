@@ -10,10 +10,10 @@ echo "$pp" > /root/vps/domain.txt
 
 
 #change repo list
-sed -i 's/http:\/\/.*\/ubuntu\//http:\/\/archive.ubuntu.com\/ubuntu\//g' /etc/apt/sources.list
+sed -i 's|http://.*/ubuntu|http://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
 
 apt update && apt upgrade -y
-apt install curl wget jq socat build-essential -y
+apt install curl wget socat build-essential -y
 
 #speedtest
 curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
@@ -27,7 +27,7 @@ wget -O /usr/bin/menu "https://raw.githubusercontent.com/adammoi/sing-box-ws-war
 chmod +x /usr/bin/menu
 wget -O /usr/bin/info "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/info.sh"
 chmod +x /usr/bin/info
-wget -O /var/www/html/index.html "https://raw.githubusercontent.com/adammoi/sing-box-ws-warp/main/index.html"
+
 
 # Check if config.json, sing-box, and sing-box.service already exist
 if [ -f "/root/sbx/config.json" ] && [ -f "/root/sbx/sing-box" ] && [ -f "/etc/systemd/system/sing-box.service" ]; then
@@ -123,7 +123,8 @@ uuid=$(/root/sbx/sing-box generate uuid)
 server_ip=$(curl -s https://api.ipify.org)
 
 # Create config.json using jq
-jq -n --arg domain "$domain" --arg uuid "$uuid" '{
+cat << EOF >> /root/sbx/config.json
+{
   "log": {
     "level": "info",
     "output": "/root/sbx/sb.log",
@@ -162,71 +163,6 @@ jq -n --arg domain "$domain" --arg uuid "$uuid" '{
         "max_early_data": 0,
         "early_data_header_name": "Sec-WebSocket-Protocol"
       }
-    },
-    {
-      "type": "vless",
-      "tag": "vless-in",
-      "listen": "::",
-      "listen_port": 5002,
-      "sniff": true,
-      "sniff_override_destination": true,
-      "domain_strategy": "ipv4_only",
-      "users": [
-        {
-          "name": "adam",
-          "uuid": "$uuid",
-          "flow": ""
-        }
-      ],
-      "tls": {
-        "enabled": true,
-        "server_name": "$domain",
-        "alpn": [
-          "http/1.1"
-        ],
-        "min_version": "1.2",
-        "max_version": "1.3",
-        "certificate_path": "/root/cert/$domain/fullchain.pem",
-        "key_path": "/root/cert/$domain/privkey.pem"
-      },
-      "transport": {
-        "type": "ws",
-        "path": "/vlws",
-        "max_early_data": 0,
-        "early_data_header_name": "Sec-WebSocket-Protocol"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "trojan-in",
-      "listen": "::",
-      "listen_port": 5003,
-      "sniff": true,
-      "sniff_override_destination": true,
-      "domain_strategy": "ipv4_only",
-      "users": [
-        {
-          "name": "adam",
-          "password": "$uuid"
-        }
-      ],
-      "tls": {
-        "enabled": true,
-        "server_name": "$domain",
-        "alpn": [
-          "http/1.1"
-        ],
-        "min_version": "1.2",
-        "max_version": "1.3",
-        "certificate_path": "/root/cert/$domain/fullchain.pem",
-        "key_path": "/root/cert/$domain/privkey.pem"
-      },
-      "transport": {
-        "type": "ws",
-        "path": "/trws",
-        "max_early_data": 0,
-        "early_data_header_name": "Sec-WebSocket-Protocol"
-      }
     }
   ],
   "outbounds": [
@@ -239,7 +175,8 @@ jq -n --arg domain "$domain" --arg uuid "$uuid" '{
       "tag": "block"
     }
   ]
-}' > /root/sbx/config.json
+}
+EOF
 
 # Create sing-box.service
 cat > /etc/systemd/system/sing-box.service <<EOF
@@ -286,8 +223,6 @@ vmlink=`cat << EOF
 EOF`
 
     link_vmess="vmess://$(echo $vmlink | base64 -w 0)"
-    link_vless="vless://$uuid@ISI_BUG:443/?type=ws&encryption=none&host=$domain&path=%2Fvlws&security=tls&sni=$domain&allowInsecure=1&fp=chrome#adam"
-    link_trojan="trojan://$uuid@ISI_BUG:443/?type=ws&host=$domain&path=%2Ftrws&security=tls&sni=$domain&allowInsecure=1#adam"
 
     # Print the server details
     echo
@@ -295,22 +230,15 @@ EOF`
     echo "Listen Port     : 443"
     echo "Server Name     : $domain"
     echo "Path Vmess WS   : /vmws"
-    echo "Path Vless WS   : /vlws"
-    echo "Path Trojan WS  : /trws"
     echo ""
     echo "Here is the link for NekoBox or v2rayNG : "
     echo ""
-    echo "Vless : $link_vless"
+    echo "Vmess : $link_vmess"
     echo ""
-    echo "Trojan : $link_trojan"
 
 
     touch /root/akun/vmess.txt
-    touch /root/akun/vless.txt
-    touch /root/akun/trojan.txt
-    echo $link_vless > /root/akun/vmess.txt
-    echo $link_vless > /root/akun/vless.txt
-    echo $link_trojan > /root/akun/trojan.txt
+    echo $link_vmess > /root/akun/vmess.txt
 
 else
     echo "Error in configuration. Aborting..."
