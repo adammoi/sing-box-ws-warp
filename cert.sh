@@ -7,7 +7,6 @@ sleep 1
 domain=$(cat /root/vps/domain.txt)
 mkdir -p /root/cert/$domain
 cek=$(lsof -i:80 | awk 'NR==2 {print $1}')
-systemctl stop nginx
 
 if [[ ! -z "$cek" ]]; then
     sleep 1
@@ -42,7 +41,6 @@ if [ ! -f "/root/.acme.sh/acme.sh" ]; then
     sleep 1
 
     systemctl restart $cek
-    systemctl restart nginx
 
     echo " [ INFO ] All finished... " 
     sleep 1
@@ -64,7 +62,6 @@ else
     sleep 1
 
     systemctl restart $cek
-    systemctl restart nginx
 
     echo " [ INFO ] All finished... " 
     sleep 1

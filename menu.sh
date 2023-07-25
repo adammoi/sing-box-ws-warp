@@ -13,26 +13,18 @@ function soon {
     menu
 }
 
-function qrcode {
-    clear
-    echo "Visit $domain:81 to convert your link to QR CODE"
-    echo "I know this is stupid things :D"
-    sleep 3
-    menu
-}
-
 # // nginx & sing-box
 nginx=$( systemctl status nginx | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
 if [[ $nginx == "running" ]]; then
-    status_nginx="${GREEN}ON${NC}"
+    status_nginx="$GREEN ON $NC"
 else
-    status_nginx="${RED}OFF${NC}"
+    status_nginx="$RED OFF $NC"
 fi
 sbox=$( systemctl status sing-box | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
 if [[ $sbox == "running" ]]; then
-    status_sbox="${GREEN}ON${NC}"
+    status_sbox="$GREEN ON $NC"
 else
-    status_sbox="${RED}${NC}"
+    status_sbox="$RED OFF $NC"
 fi
 
 uptime_info=$(uptime -p)
@@ -59,7 +51,8 @@ else
 echo " System Uptime  : $uphours $upminutes           "
 fi
 echo " Memory Usage   : $uram / $tram                 "
-echo " ISP & City     : $ISP & $CITY                  "
+echo " ISP            : $ISP                          "
+echo " City           : $CITY                         "
 echo " Current Domain : $(cat /root/vps/domain.txt)   "
 echo " IP-VPS         : $IPVPS                        "
 echo "───────────────────────────────────────────────────"
@@ -74,7 +67,7 @@ echo "  [03] • [Menu] TROJAN     [09] • SPEEDTEST"
 echo "  [04] • [Menu] SING-BOX   [10] • ABOUT    "    
 echo "───────────────────────────────────────────────────"
 echo "─────────────────────── BY ────────────────────────"
-echo "                  • ADAM SIJA •             "     
+echo "                 • Berliano Adam •                 "     
 echo "───────────────────────────────────────────────────"
 echo ""
 
@@ -88,7 +81,7 @@ case $opt in
 5) clear ; soon ;;
 6) clear ; soon ;;
 7) clear ; soon ;;
-8) clear ; qrcode ;;
+8) clear ; soon ;;
 9) clear ; speedtest ;;
 10) clear ; info ;;
 
